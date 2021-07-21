@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import React, { Component } from 'react'
 import {Text, View, TextInput, TouchableOpacity,ScrollView ,StyleSheet} from 'react-native'
 import axios from 'axios';
@@ -190,3 +191,18 @@ return (
 		//	borderStyle:'solid'
 		}
 	})
+||||||| (empty tree)
+=======
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import QuizTeacher from '../../Navigators/InstructorNavigators/QuizTeacher';
+import Navigation from '../../Navigators/InstructorNavigators/QuizTeacher'
+
+export default function App() {
+  return (
+    <QuizTeacher/>
+    
+ 
+    );
+}
+>>>>>>> 4e55b32 (LAST-Modified)
