@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Component } from 'react'
-import { StyleSheet, View, FlatList,Button } from 'react-native'
+import { StyleSheet, View, FlatList,Button,ScrollView } from 'react-native'
 import { Text, FAB, List } from 'react-native-paper'
 import { useSelector, useDispatch } from 'react-redux'
 import { addgrade, deletegrade } from '../../reducer/GradesApp'
@@ -64,6 +64,7 @@ state={
               <Item title={item.title} score={item.score} />
               );
         return (
+          <ScrollView>
           <View style={styles.container}>
           <FlatList
           data={this.state.grades}
@@ -76,6 +77,7 @@ state={
                     color="#007bff"
                 />
       </View>
+      </ScrollView>
      )
 }}
 

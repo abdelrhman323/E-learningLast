@@ -18,7 +18,7 @@ export default class CreateQuiz extends Component {
 			grades:'',
 			question:'',
 			answer:'',
-			choices:[],
+			choices:[" "],
 		}],
 		textInput : [],
 		inputData : [],
@@ -31,7 +31,9 @@ export default class CreateQuiz extends Component {
 		value:new Date(),
 		mode:'',
 		pressed:false,
-		prev:[]
+		ans:[],
+		Ans:'',
+		count:0
 	};
 	  
 
@@ -60,9 +62,19 @@ export default class CreateQuiz extends Component {
 			icon='plus'
 			onPress={() => this.addTextInputC(this.state.textInput.length+1)
 			}
-			style={{backgroundColor:'blue',width:50,}}
+			style={{backgroundColor:'blue',width:50,flexDirection: 'row',
+			justifyContent: 'center'}}
 
-		/>);
+		/>,
+		<FAB
+		small
+		label='Choose Answer'
+		onPress={() => this.addDropdown()
+		}
+		style={{backgroundColor:'blue',width:150,}}
+
+	/>
+		);
 		this.setState({ textInput });
 		
 	  }
@@ -79,7 +91,7 @@ export default class CreateQuiz extends Component {
 		return arr;
 	  }
 getValues = async () => {
-       console.log(this.state.inputData)
+   //    console.log(this.state.inputData)
 	
 	for(let i=1;i<this.state.inputData.length;i++)
 	{
@@ -113,19 +125,54 @@ getValues = async () => {
 
 
 habda= ()=>{
+	this.state.ans=[]
 	var inputData=[...this.state.inputData]
 	inputData.push({"title":"*"})
 	this.setState({inputData})
 	this.addFAB()
 	this.addFields()
+
 }
 
 	addFields=()=>{
-		let ph=["Enter Mark","Enter Question","Enter Answer","Enter Choice","Enter Choice"]
-		for(let i=0; i<5;i++){
+		let ph=["Enter Mark","Enter Question","Enter Choice","Enter Choice"]
+		for(let i=0; i<4;i++){
 		this.addTextInput(this.state.textInput.length,ph[i],ph[i])
 	}
 }
+	addDropdown=()=>{
+		
+		var ans =[...this.state.ans]
+		for(let i=this.state.count;i<this.state.inputData.length;i++){
+		if(this.state.inputData[i].type=="Enter Choice" ){
+			ans.push(this.state.inputData[i].text)
+		}
+		this.setState({count:i+1})
+		}
+		this.setState({ans})
+		console.log("Choicesss"+'\n'+ans,this.state.count)
+		let textInput = this.state.textInput;
+		textInput.push(
+			<DropDownPicker
+			items={[{label:((ans[0])?ans[0]:""),value:'0'},
+			{label:((ans[1])?ans[1]:""),value:'1'},
+			{label:((ans[2])?ans[2]:""),value:'2'},
+			{label:((ans[3])?ans[3]:""),value:'3'},
+			{label:((ans[4])?ans[4]:""),value:'4'}
+		]}
+			placeholder="Answer"
+			value={this.state.Ans}
+			onChangeItem={this.handleAnswerUpdate}
+			containerStyle={styles.dropdownBox}
+			placeholderStyle={styles.dropdownBoxPlaceholder}
+		  /> 
+		  );
+		this.setState({ textInput });		
+	  }
+	  handleAnswerUpdate =item => {
+		this.setState({Ans: item.label})
+		this.addValues(item.label,this.state.textInput.length,"Enter Answer")
+	   }
 
   addValues = (text, index,t) => {
     let dataArray = this.state.inputData;
@@ -157,6 +204,7 @@ habda= ()=>{
       inputData: dataArray
     });
 }
+console.log(this.state.inputData)
   }
 
 	  handleTimeMUpdate =item => {
@@ -203,6 +251,7 @@ habda= ()=>{
 
 	QuizPost= async()=>  {
 		await this.TotlaMark()
+		console.log(this.TotlaMark())
 		await this.getValues()
 		console.log("TIMEEE "+this.state.timeM+this.state.timeS)
 		const token ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGMzMjI3OTk1MmVhNTNhMGMyNzdmOTYiLCJuYW1lIjoiYWJkZWxyaG1hbiIsImVtYWlsIjoiaTZAZ21haWwuY29tIiwicm9sZSI6Imluc3RydWN0b3IiLCJpYXQiOjE2MjM2ODQxMjl9.59bZRIMCiSVqXuMXtuqsFHhLfc-mMFiJgcCc043-8fI"
@@ -265,6 +314,7 @@ habda= ()=>{
 	}
 	handleMUpdate =item => {
 		this.setState({timeM: item.value})
+		console.log("Time"+this.state.timeM)
 	   }	
 	   handleSUpdate =item => {
 		this.setState({timeS: item.value})
