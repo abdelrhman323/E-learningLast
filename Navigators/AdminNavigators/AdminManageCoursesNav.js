@@ -1,45 +1,45 @@
 import React from 'react'
 import {createBottomTabNavigator, useBottomTabBarHeight} from '@react-navigation/bottom-tabs'
-import AdminManageStudentsAccountsScreen from '../../Screens/AdminScreens/AdminManageStudentsAccountsScreen';
-import AdminCreateStudentsAccountsScreen from '../../Screens/AdminScreens/AdminCreateStudentsAccountsScreen';
+import AdminManageCoursesScreen from '../../Screens/AdminScreens/AdminManageCoursesScreen';
+import AdminCreateCoursesScreen from '../../Screens/AdminScreens/AdminCreateCoursesScreen';
 import Colors from '../../Constants/colors';
 import { Icon } from 'react-native-elements';
 import { url } from '../../Constants/numbers';
 import { compareByName } from '../../Constants/Functions';
 
-const AdminManageStudentsAccountsNavigator = createBottomTabNavigator()
+const AdminManageCoursesNavigator = createBottomTabNavigator()
 
-export default class AdminManageStudentsAccountsNav extends React.Component{
-
+export default class AdminManageCoursesNav extends React.Component{
 
   state={
     searchInput: '',
     year: '0',
-    studentsBasicData: [],
-    studentsShownData: [],
-    students: [],
-    studentsByYear: [],
+    coursesBasicData: [],
+    coursesShownData: [],
+    courses: [],
+    coursesByYear: [],
     loading: true,
   }
 
+  
   componentDidMount(){
-    this.getStudents()
+    this.getCourses()
   }
 
   init = () => {
     this.setState({
-      studentsByYear: [...this.state.students.filter((student) => {
+      coursesByYear: [...this.state.courses.filter((course) => {
         if(this.state.year==='0'){
           return true
         }
         else{
-          return this.state.year===student.year
+          return this.state.year===course.year
         }
       })]
     }, () => {
       const arr = []
       let obj = {}
-      this.state.studentsByYear.map((item) => {
+      this.state.coursesByYear.map((item) => {
         Object.keys(item).map((key) => {
           key === 'name' || key === 'code' || key === 'year' ? obj[key] = item[key]
           : null
@@ -48,39 +48,43 @@ export default class AdminManageStudentsAccountsNav extends React.Component{
         obj={}
       })
       this.setState({
-        studentsShownData: [...arr.sort(compareByName)], 
-        studentsBasicData: [...arr.sort(compareByName)],
-        students: [...this.state.students.sort(compareByName)],
-        studentsByYear: [...this.state.studentsByYear.sort(compareByName)]
+        coursesShownData: [...arr.sort(compareByName)], 
+        coursesBasicData: [...arr.sort(compareByName)],
+        courses: [...this.state.courses.sort(compareByName)],
+        coursesByYear: [...this.state.coursesByYear.sort(compareByName)],
       })
-    })
-    
+    })  
   }
 
-  getStudents = async () => {
+  getCourses = async () => {
     try{
       this.setState({loading: true})
       const response = await fetch(
-        `${url}/admins/getAllStudents`, {
+        `${url}/admins/courses`, {
         method: 'GET',
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + this.props.userToken,
+          "Authorization": "Bearer " + this.props.userToken,        
         }
       })
       
       const results = await response.json()
       if(response.status === 200){
-        this.setState({students: [...results]}, this.init)
+        this.setState({courses: [...results]}, this.init)
+      }
+      else if(response.status === 404){
+        this.setState({courses: []}, this.init)
+        Toast.show(results)
+      }
+      else if(response.status === 403){
+        this.setState({courses: []}, this.init)
+        Toast.show('Unauthorithed')
       }
       else if(response.status === 500){
         Toast.show('Server Error')
       }
-      else{
-        this.setState({students: []}, this.init)
-        Toast.show(results)
-      }
       this.setState({loading: false})
+
     } catch (err){
       console.log(err.message)
     }
@@ -90,11 +94,11 @@ export default class AdminManageStudentsAccountsNav extends React.Component{
     this.setState({searchInput: input})
     if(input === null){
       this.setState({
-        studentsShownData: this.state.studentsBasicData
+        coursesShownData: this.state.coursesBasicData
       })
     } else{
       this.setState({
-        studentsShownData: [...this.state.studentsBasicData
+        coursesShownData: [...this.state.coursesBasicData
           .filter(function(item) {
             return !(item.name.indexOf(input) && item.code.indexOf(input))
           })]
@@ -103,18 +107,23 @@ export default class AdminManageStudentsAccountsNav extends React.Component{
   }
 
   filterByYear = (year) => {
-    this.setState({loading:true})
+    this.setState({loading: true})
     this.init()
     this.setState({
-      studentsShownData: [...this.state.studentsBasicData.filter(function(student){
-        return student.year===year
-      })],
-      studentsByYear: [...this.state.students.filter(function(student){
+      coursesShownData: [...this.state.coursesBasicData.filter(function(course){
         if(year === '0'){
           return true
         }
         else{
-          return student.year===year
+          return course.year===year
+        }
+      })],
+      coursesByYear: [...this.state.courses.filter(function(course){
+        if(year === '0'){
+          return true
+        }
+        else{
+          return course.year===year
         }
       })]
     }, () => {
@@ -123,56 +132,57 @@ export default class AdminManageStudentsAccountsNav extends React.Component{
   }
 
   handleYearChange = (year) => {
-    this.setState({loading: true})
     if(year!=='0'){
       this.setState({year: year, searchInput: ''}, () => this.filterByYear(year))
     }
     else{
-      this.setState({year: year, searchInput: ''},this.getStudents)
+      this.setState({year: year, searchInput: ''},this.getCourses)
     }
-    this.setState({loading: false})
   }
-  
 
-  deleteStudent = (code) => {
+  deleteCourse = (code) => {
     this.setState({
-        students: [...this.state.students.filter(function(student){return student.code !== code})],
+        courses: [...this.state.courses.filter(function(course){return course.code !== code})]
       },
-      this.getStudents
+      this.init
     )
-
   }
+
+
 
   render(){
     return(
-      <AdminManageStudentsAccountsNavigator.Navigator
-        initialRouteName='adminManageStudentsAccountsScreen'
+      <AdminManageCoursesNavigator.Navigator
+        initialRouteName='adminManageCoursesScreen'
         backBehavior='none'
         tabBarOptions={{
           activeTintColor: Colors.primary_color,
           labelStyle: {fontSize: 13},
           keyboardHidesTabBar: 'true',
         }}
+        
+        
       >
-        <AdminManageStudentsAccountsNavigator.Screen 
-          name='adminManageStudentsAccountsScreen'
+        
+        <AdminManageCoursesNavigator.Screen 
+          name='adminManageCoursesScreen'
           children={() => 
-            <AdminManageStudentsAccountsScreen 
+            <AdminManageCoursesScreen 
               navigation={this.props.navigation} 
               userToken={this.props.userToken}
               handleSearch={this.handleSearch}
               handleYearChange={this.handleYearChange}
-              deleteStudent={this.deleteStudent}
-              getStudents={this.getStudents}
+              deleteCourse={this.deleteCourse}
+              getCourses={this.getCourses}
               searchInput={this.state.searchInput}
               year={this.state.year}
-              studentsShownData={this.state.studentsShownData}
-              studentsByYear={this.state.studentsByYear}
+              coursesShownData={this.state.coursesShownData}
+              coursesByYear={this.state.coursesByYear}
               loading={this.state.loading}
             />
           }
           options={{
-            title: 'Students List',
+            title: 'Courses List',
             tabBarIcon: ({color, size}) =>(
               <Icon 
                 name='list'
@@ -184,17 +194,17 @@ export default class AdminManageStudentsAccountsNav extends React.Component{
           }}
         />
 
-        <AdminManageStudentsAccountsNavigator.Screen 
-          name='adminCreateStudentsAccountsScreen'
+        <AdminManageCoursesNavigator.Screen 
+          name='adminCreateCoursesScreen'
           children={() => 
-            <AdminCreateStudentsAccountsScreen 
+            <AdminCreateCoursesScreen 
               navigation={this.props.navigation} 
               userToken={this.props.userToken}
-              getStudents={this.getStudents}
+              getCourses={this.getCourses}
             />
           }
           options={{
-            title: 'Create New Accounts',
+            title: 'Create New Course',
             tabBarIcon: ({color, size}) =>(
               <Icon 
                 name='plus'
@@ -205,7 +215,7 @@ export default class AdminManageStudentsAccountsNav extends React.Component{
             ),
           }}
         />
-      </AdminManageStudentsAccountsNavigator.Navigator>
+      </AdminManageCoursesNavigator.Navigator>
     );
   }
 }

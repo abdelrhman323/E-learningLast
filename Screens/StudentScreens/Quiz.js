@@ -5,6 +5,8 @@ import DropDownPicker from 'react-native-dropdown-picker'
 import axios from 'axios'
 import {FAB} from 'react-native-paper'
 import { Touchable } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
+import { isEmpty, isNumber } from 'lodash';
 
 export default class Quiz extends Component {
 
@@ -25,13 +27,42 @@ export default class Quiz extends Component {
         quizID:'',
         quizzes:[{}],
         selectedQuiz:'',
-        titles:[]
+        titles:[],
+        n:[{}],
+        check:''
     }
 
     componentDidMount() {
         this.fetchQuizData()
         this.QuizzesShow()
-        
+  //      this.CheckQuiz()
+
+    }
+
+    CheckQuiz(id) {
+        const { loading } = this.state
+        const {title} = this.state
+//        const id = "60fa4a20dbc2101834c1c767"
+
+        const token= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGMyNmExNTY3NDJmZjNmYjg2N2FjYjgiLCJuYW1lIjoiYWJkZWxyaG1hbiIsImVtYWlsIjoiaTJAZ21haWwuY29tIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2MjM0OTM0OTd9.YetA4cph_K6MPU9eDW2frN3ZAwBdkmaGGFjiyWPkUTw";
+
+        this.setState({ loading: !loading })
+       // console.log(this.state.title)
+        fetch(`http://192.168.1.4:3000/quizes/checkQuiz/${id}/cseii3`,{
+            method:"GET",
+            headers: {
+              "Content-Type" :"application/json",
+              "Authorization": `Bearer ${token}`,
+            },
+        })
+        .then((res) => res.json())
+        .then((data) => {
+          this.setState({check:data})
+          console.log("CHEEEK"+this.state.check);
+      }) .catch(error => {
+                this.setState({ loading: false });
+            })
+
     }
 
     fetchQuizData() {
@@ -43,25 +74,25 @@ export default class Quiz extends Component {
         fetch(`http://192.168.1.4:3000/quizes/getQuiz/${this.state.title}/cseii3`,{
             method:"GET",
             headers: {
-              "Content-Type" :"application/json",  
+              "Content-Type" :"application/json",
               "Authorization": `Bearer ${token}`,
             },
         })
         .then((res) => res.json())
         .then((data) => {
           this.setState({
-            loading:false,  
+            loading:false,
             quizData: data.questions,
             totalTime:data.time,
             total_marks:data.total_marks,
             quizID:data._id,
           });
-          console.log("aaaaa"+data.questions[0].grades)  
-          console.log("aaaaa"+data._id)          
+          console.log("aaaaa"+data.questions[0].grades)
+          console.log("aaaaa"+data._id)
       }) .catch(error => {
                 this.setState({ loading: false });
             })
-            
+
     }
 
     _renderQuestion() {
@@ -69,14 +100,14 @@ export default class Quiz extends Component {
         if (!quizData || quizData.length === 0) {
             this.fetchQuizData()
         } else {
-            const currentQuestion = quizData[asked].question; 
-            
+            const currentQuestion = quizData[asked].question;
+
             let options = [quizData[asked].choices[0]]
             for(let i=1;i<quizData[asked].choices.length;i++){
                 options.push(
                     quizData[asked].choices[i])
               }
-        
+
             const currentQuestionOptions = options.map((option, index) => ({
                 label: option,
                 value: index,
@@ -86,7 +117,8 @@ export default class Quiz extends Component {
         }
     }
 
-    onPress = userAnswer => this.setState({ userAnswer});
+    onPress = userAnswer => {this.setState({ userAnswer})
+     console.log(this.state.userAnswer)};
 
     nextQuestion(last) {
         const { userAnswer, asked, quizData, currentQuestionOptions, totalUserAnswers } = this.state
@@ -100,7 +132,7 @@ export default class Quiz extends Component {
             score: currentQuestion.answer === currentQuestionOptions[userAnswer].label,
         }
         totalUserAnswers.push(currentAnswer)
-        if(last) this.setState({notstart:true})   
+        if(last) this.setState({notstart:true})
         this.setState({
             totalUserAnswers: totalUserAnswers,
             asked: asked + 1,
@@ -111,7 +143,7 @@ export default class Quiz extends Component {
     backQuestion(last) {
         const { userAnswer, asked, quizData, currentQuestionOptions, totalUserAnswers } = this.state
         if(asked===0)return;
-        else{    
+        else{
         const currentQuestion = quizData[asked]
 
         const currentAnswer = {
@@ -122,7 +154,7 @@ export default class Quiz extends Component {
         }
 
         totalUserAnswers.pop()
-        if(last) this.setState({notstart:true})   
+        if(last) this.setState({notstart:true})
         this.setState({
             totalUserAnswers: totalUserAnswers,
             asked: asked - 1,
@@ -130,7 +162,7 @@ export default class Quiz extends Component {
         }, () => (!last ? this._renderQuestion() : this.calculateResult()))
       }
     }
-   
+
     calculateResult() {
         const { totalUserAnswers } = this.state
         const token= "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MGMyNmExNTY3NDJmZjNmYjg2N2FjYjgiLCJuYW1lIjoiYWJkZWxyaG1hbiIsImVtYWlsIjoiaTJAZ21haWwuY29tIiwicm9sZSI6InN0dWRlbnQiLCJpYXQiOjE2MjM0OTM0OTd9.YetA4cph_K6MPU9eDW2frN3ZAwBdkmaGGFjiyWPkUTw";
@@ -144,11 +176,13 @@ export default class Quiz extends Component {
             })
         }
         var newArray = x.filter(value => Object.keys(value).length !== 0);
-        console.log(newArray)
+        var n=[...this.state.n]
+        this.setState({n:newArray},()=>{console.log(this.state.n)})
+   //     console.log(this.state.n)
      fetch(`http://192.168.1.4:3000/submit`,{
             method:"POST",
             headers: {
-              "Content-Type" :"application/json",  
+              "Content-Type" :"application/json",
               "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
@@ -167,7 +201,7 @@ export default class Quiz extends Component {
 		  console.log(error);
 		});
 
-        const { navigate } = this.props.navigation;
+       
         const {quizData}=this.state
        // console.log(quizData)
         let totalScore = 0;
@@ -180,7 +214,10 @@ export default class Quiz extends Component {
         this.setState({ loading: true })
         const time=this.state.totalTime
         const total_marks=this.state.total_marks
-        navigate('Result', { totalUserAnswers,totalScore,time ,total_marks })
+        const title=this.state.title
+        const currentQuestion = this.state.currentQuestion
+        const { navigate } = this.props.navigation;
+        navigate('Result', { totalUserAnswers,totalScore,time ,total_marks,title,currentQuestion })
         //console.log('you finish')
     }
     handleQuiUpdate =item => {
@@ -199,7 +236,7 @@ export default class Quiz extends Component {
             console.log("length: "+response.data.length)
             while(i<response.data.length){
           //  console.log(response.data[i].title)
-          //  console.log(response.data[i]._id)
+            console.log(response.data[i]._id)
               i+=1
             }
             this.setState({quizzes:response.data})
@@ -216,13 +253,24 @@ export default class Quiz extends Component {
           });
       }
     render() {
+        console.log("Token: "+this.props.userToken)
         const dataMongo = this.state.quizzes.map((item, index) => {
-            var quiz=[item.title,'\n'] 
+            var quiz=[item.title,'\n']
             return (
-                <TouchableOpacity  style={{marginBottom:20}}
-                onPress={()=>this.setState({title:item.title})} 
+                <TouchableOpacity  style={{marginBottom:10}}
+                onPress={()=>{
+              //      this.CheckQuiz(item._id)
+                    // if(this.state.check!='not found'){
+                       //  alert("you solved this quiz before")
+                     //    this.setState({loading:false})
+                   //  }
+                 //    if(this.state.check==='not found'){
+                         this.setState({title:item.title})
+               //          this.setState({loading:false})
+                   // }
+                }}
                  >
-                   {item==="" ? 
+                   {isEmpty(item) ?
                    (<Text style={{ fontSize: 20 ,
                      backgroundColor:'blue',textAlign:'center',color:'white',
                      borderRadius:5,
@@ -244,7 +292,7 @@ export default class Quiz extends Component {
                     {quiz}
                   </Text>)}
                 </TouchableOpacity>
-              )});         
+              )});
         const { loading, showQuiz, userAnswer, currentQuestion, currentQuestionOptions, quizData, asked } = this.state
         return loading ? (
             <View style={styles.container}>
@@ -255,9 +303,10 @@ export default class Quiz extends Component {
                     {
                         !showQuiz ? (
                             <View style={styles.container}>
+
                                 <Text style={styles.text}>Course Quiz</Text>
                                 <Text style={styles.warningText}>Please click start quiz after entering the title.</Text>
-                                          <View>             
+                                          <View>
                                           {dataMongo}
                                                     </View>
                                     <FAB
@@ -269,6 +318,7 @@ export default class Quiz extends Component {
                                         onPress={() => this._renderQuestion()
                                         }
                                  />
+
                             </View>
                         ) : (
                                 <View style={styles.quizContainer}>
@@ -299,10 +349,10 @@ export default class Quiz extends Component {
                                             </RadioButton>
                                         ))}
                                     </RadioForm>
-                                    <View style={{ marginTop: 10 }}>
+                                    <View style={{ marginTop: 60 }}>
                                         {/* quizData.length === asked + 1 */}
                                         {quizData.length === asked + 1 ? (
-                                            <View>
+                                            <View style={{marginTop:60}}>
                                             <Button
                                                 onPress={() => this.nextQuestion('last')}
                                                 title="Finish"
@@ -333,7 +383,7 @@ export default class Quiz extends Component {
                                                     color="#007bff"
                                                 />
                                                 </View>
-                                             </View>   
+                                             </View>
                                             )
                                         }
                                     </View>
@@ -341,6 +391,7 @@ export default class Quiz extends Component {
                             )
                     }
                 </View>
+
             )
     }
 }
@@ -350,7 +401,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
         alignItems: 'center',
-        justifyContent: 'center',
+    //    justifyContent: 'center',
     },
     container1: {margin: 16},
 
@@ -393,8 +444,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'blue',
         position: 'relative',
         margin: 20,
-        top:150
-        
+        //top:20
+
 
     }
 });

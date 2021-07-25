@@ -4,6 +4,8 @@ import axios from 'axios';
 import {FAB} from 'react-native-paper'
 import DropDownPicker from 'react-native-dropdown-picker'
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Fab } from 'native-base';
+import DatePicker from "react-datepicker";
 
 
 export default class CreateQuiz extends Component {
@@ -22,9 +24,10 @@ export default class CreateQuiz extends Component {
 		}],
 		textInput : [],
 		inputData : [],
-		date:new Date(1598051730000),
+		//date:new Date(1598051730000),
 		mode:'time',
-		show:false,
+		showS:false,
+		showE:false,
 		text:'empty',
 		timeM:'',
 		timeS:'',
@@ -33,7 +36,11 @@ export default class CreateQuiz extends Component {
 		pressed:false,
 		ans:[],
 		Ans:'',
-		count:0
+		count:0,
+		remove:[],
+		startDate:new Date(),
+		endDate:new Date()
+
 	};
 	  
 
@@ -78,7 +85,7 @@ export default class CreateQuiz extends Component {
 		this.setState({ textInput });
 		
 	  }
-	  removeItemAll(arr, value) {
+	  IteremovemAll(arr, value) {
 		var i = 0;
 		while (i < arr.length) {
 		  if (arr[i] === value) {
@@ -215,6 +222,9 @@ console.log(this.state.inputData)
 	   }
 	 addTextInputC = (index) => {
 		index=index-1
+		var remove=[...this.state.remove]
+		remove.push("*")
+		this.setState({remove})
 		let textInput = this.state.textInput;
 		textInput.push(<TextInput style={{
 			height: 40,
@@ -243,9 +253,14 @@ console.log(this.state.inputData)
 	  removeTextInput = () => {
 		let textInput = this.state.textInput;
 		let inputData = this.state.inputData;
+		console.log(textInput[0])
+		for(let i=0;i<7+(this.state.remove.length);i++){
+		
 		textInput.pop();
 		inputData.pop();
-		this.setState({ textInput,inputData });
+		
+	}
+		this.setState({ textInput,inputData,remove:[] });
 	  }
 
 
@@ -269,6 +284,8 @@ console.log(this.state.inputData)
 		let body={
 				title:this.state.input1,
 				total_marks:this.TotlaMark(),
+				startDate:this.state.startDate,
+				endDate:this.state.endDate,	
 				time:parseInt(this.state.timeM+this.state.timeS),	
 				questions:filtered,
 				course_code:'cseii3',
@@ -344,24 +361,46 @@ console.log(this.state.inputData)
 				x[i]=i+1	
 			}
 			
-		const showMode = (currentMode) => {
-			this.setState({show:true});
+		const showModeS = (currentMode) => {
+			this.setState({showS:true});
 			this.setState({mode:currentMode});
 		  };
-		  const onChange = (event, selectedDate) => {
+		  const showModeE = (currentMode) => {
+			this.setState({showE:true});
+			this.setState({mode:currentMode});
+		  };  
+		  const onChangeS = (event, selectedDate) => {
 			const currentDate = selectedDate || date;
-			this.setState({show:(Platform.OS === 'ios')});
-			this.setState({date:currentDate});
-		
+			this.setState({showS:(Platform.OS === 'ios')});
+			this.setState({startDate:currentDate});
+			let tempDate = new Date(currentDate);
+			let fTime = 'hr: ' + tempDate.getHours() + ' | min: ' + tempDate.getMinutes()
+			this.setState({text:fTime})
+			this.setState({time:String(tempDate.getHours()+''+tempDate.getMinutes())})
+			console.log('time '+this.state.time)
+			console.log('startDate '+this.state.startDate)	
+		}
+		const onChangeE = (event, selectedDate) => {
+			const currentDate = selectedDate || date;
+			this.setState({showE:(Platform.OS === 'ios')});
+			this.setState({endDate:currentDate});
 			// Process the date values
 			let tempDate = new Date(currentDate);
 			let fTime = 'hr: ' + tempDate.getHours() + ' | min: ' + tempDate.getMinutes()
 			this.setState({text:fTime})
 			this.setState({time:String(tempDate.getHours()+''+tempDate.getMinutes())})
 			console.log('time '+this.state.time)
+			console.log('endDate '+this.state.endDate)
 		}
-
-	
+		const showDatepickerS = () => {
+			showModeS('date');
+		  };
+		  const showDatepickerE = () => {
+			showModeE('date');
+		  };
+		  const showTimepicker = () => {
+			showMode('time');
+		  };
  
 return (
 	<ScrollView>		
@@ -372,6 +411,7 @@ return (
 	<View>
 	<Text style={{right:30,top:10}} >Title</Text>	
 	<TextInput
+	
 	placeholder='Enter the title'
 	style={{height: 50, width: 200, fontSize: 15,backgroundColor:'white',paddingLeft:10,right:50,borderRadius:10,right:50,marginBottom:10,marginTop:10,backgroundColor:'#EEEEEE'}}
 	onChangeText={(input1) => this.setState({input1})}
@@ -519,7 +559,44 @@ return (
             />
 
     </View>
+<View style={{marginTop:135}}>
+<View >
+      <View style={{marginBottom:5}}>
+		  <Text style={{textAlign:'center'}}>StartDate</Text>
+        <Button onPress={showDatepickerS} title="Show date picker!" />
+      </View>
+ 
+      {this.state.showS && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={this.state.startDate}
+          mode={this.state.mode}
+          
+          display="default"
+          onChange={onChangeS}
+        />
+      )}
+	  
+    </View>
+	<View>
+      <View style={{marginBottom:5}}>
+	  <Text style={{textAlign:'center'}}>EndDate</Text>
+        <Button onPress={showDatepickerE} title="Show date picker!" />
+      </View>
+      {this.state.showE && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={this.state.endDate}
+          mode={this.state.mode}
+          is24Hour={true}
+          display="default"
+          onChange={onChangeE}
+        />
+      )}
+	  
+    </View>
 
+</View>
 	 <View >
 	 <View style= {styles.row}>
           <View style={{margin: 10,marginTop:135}}>
@@ -575,6 +652,7 @@ return (
 	}
 	}
 	
+
 	const styles = StyleSheet.create({ 
 		container: {
 			flex: 1,

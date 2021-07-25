@@ -7,11 +7,10 @@ import AdminManageStudentsAccountsNav from './AdminManageStudentsAccountsNav';
 const AdminViewStudentsAccountsNavigator = createStackNavigator()
 
 export default class AdminViewStudentsAccountsNav extends React.Component{
-  
-  getHeaderTitle(route) {
+
+  getHeaderTitle(route){
     return route.params.userName
   }
-
 
   render(){
     return(
@@ -22,7 +21,10 @@ export default class AdminViewStudentsAccountsNav extends React.Component{
         
         <AdminViewStudentsAccountsNavigator.Screen 
           name={'adminManageStudentsAccountsNav'}
-          component={AdminManageStudentsAccountsNav}
+          children={() => <AdminManageStudentsAccountsNav 
+            navigation={this.props.navigation} 
+            userToken={this.props.userToken}
+          />}
           options={{
             headerShown: false
           }}

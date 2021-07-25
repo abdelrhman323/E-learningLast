@@ -31,7 +31,7 @@ headers: {
 .then((data) => {
 //console.log(data)  
 this.setState({enrolles:data}) 
-console.log(this.state.enrolles)
+//console.log(this.state.enrolles)
 // let i=0;
 // while(i<this.state.grades.length){
 // this.state.adminsBasicData.push(this.state.grades[i].title,this.state.grades[i].student_code,this.state.grades[i].score)

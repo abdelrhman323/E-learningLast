@@ -1,61 +1,97 @@
 import React from 'react'
-import { StyleSheet, Text, Transformation, Image, View, TextInput, Button, KeyboardAvoidingView, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, Transformation, Image, View, TextInput, Button, KeyboardAvoidingView, ActivityIndicator, ScrollView } from 'react-native'
 import TypeWriter from 'react-native-typewriter'
 import Toast from 'react-native-simple-toast'
 import Colors from '../Constants/colors'
+import { Icon } from 'react-native-elements'
 import LoadingScreen from './LoadingScreen'
 import { StackActions } from '@react-navigation/routers'
 import { NavigationActions } from 'react-navigation'
+import { TouchableOpacity } from 'react-native'
+import Spinner from 'react-native-loading-spinner-overlay';
+import { emailReg, url } from '../Constants/numbers'
 
 export default class LoginScreen extends React.Component{
   state = {
     username: '',
     password: '',
+    userToken: null,
+    user: {},
     typing: 1,
     isFormValid: false,
-    loading: false
+    validUsername: false,
+    validPassword: false,
+    loading: false,
+    visible: false,
   }
-
+  
   componentDidUpdate(prevProps, prevState){
     if(prevState.username !== this.state.username || prevState.password !== this.state.password){
       this.validateForm()
     }
   }
 
-  toggleTyping = () => {this.setState({typing: this.state.typing*-1})}
-
-  handleUsernameUpdate = username => {
-    this.setState({username})
-  }
-  handlePasswordUpdate = password => {
-    this.setState({password})
-  }
-
   validateForm = () => {
-    if(this.state.username.length > 0 && this.state.password.length > 0){
+    if(this.state.validUsername && this.state.validPassword){
       this.setState({isFormValid: true})
     } else{
       this.setState({isFormValid: false})
     }
   }
 
-  toggleLoading = () => {
-    console.log(this.state.loading)
-    this.setState({loading: !this.state.loading})
-    console.log(this.state.loading)
+  toggleTyping = () => {this.setState({typing: this.state.typing*-1})}
+
+  handleUsernameUpdate = username => {
+    if (emailReg.test(username) === false) {
+      this.setState({ username: username, validUsername: false })
+      return false;
+    }
+    else {
+      this.setState({ username: username, validUsername: true })
+    }
+  }
+  handlePasswordUpdate = password => {
+    if(password.length<7){
+      this.setState({password: password, validPassword: false})
+    }
+    else{
+      this.setState({password: password, validPassword: true})
+    }
   }
 
-  
 
-  onSubmit = () => {
+  login = async () => {
+      
     this.setState({loading: true})
-    this.props.navigation.dispatch(
-      StackActions.replace('loadingScreen',
-        {username: this.state.username, password: this.state.password})
-    );
-    // this.props.navigation.navigate('loadingScreen', 
-    //   {username: this.state.username, password: this.state.password})
-    //this.authenticateUser()
+    try{
+      const response = await fetch(`${url}/users/login`, {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          email: this.state.username,
+          password: this.state.password,
+        })
+      })
+      
+      const result = await response.json()
+      if(response.status === 400){
+        Toast.show(result)
+        this.props.navigation.dispatch(StackActions.replace('loginScreen'))
+      }
+      else{
+        this.setState({userToken: result.token, user: result.user}, 
+          this.props.navigation.dispatch(StackActions.replace(`${result.user.role}Nav`,
+            {
+              userToken: result.token,
+              user: result.user,
+            }
+          ))
+        )
+      }
+    } catch (e) {
+      console.log(e.message)
+    }
+
   }
 
   render(){
@@ -65,44 +101,75 @@ export default class LoginScreen extends React.Component{
         behavior='height'
         style={styles.container}
       >
-
-        <Image 
+        <Spinner visible={this.state.loading}/>
+        <Image
           source={require('../assets/login_img1.png')}
           style={styles.img}
           resizeMode= 'cover'
         />
-        
-        <TypeWriter 
-          typing={this.state.typing}
-          //onTypingEnd={this.toggleTyping}
-          maxDelay={100}
-          style={styles.typewriter}
-        >
-            WELCOME BACK
-        </TypeWriter>
+        <ScrollView style={styles.scroller} contentContainerStyle={styles.scrollerContent}>
+          <TypeWriter 
+            typing={this.state.typing}
+            //onTypingEnd={this.toggleTyping}
+            maxDelay={100}
+            style={styles.typewriter}
+          >
+              WELCOME BACK
+          </TypeWriter>
+          <TextInput 
+            placeholder={'Username'}
+            value={this.state.username}
+            onChangeText={this.handleUsernameUpdate}
+            autoCompleteType='email'
+            style={styles.usernameInput}
+          />
 
-        <TextInput 
-          placeholder={'Username'}
-          value={this.state.username}
-          onChangeText={this.handleUsernameUpdate}
-          style={styles.usernameBoxStyle}
-        />
+          <Text style={[
+            styles.alert,
+            (this.state.validUsername || this.state.username.length===0) ? 
+            {color: '#fff'} : 
+            {color: 'red'}
+          ]}>
+            Email not in the correct format
+          </Text>
+          
+          <View style={styles.passwordBox}>
+            <TextInput 
+              placeholder={'Password'}
+              value={this.state.password}
+              onChangeText={this.handlePasswordUpdate}
+              secureTextEntry={!this.state.visible}
+              style={styles.passwordInput}
+            />
+            <TouchableOpacity onPress={() => {this.setState({visible: !this.state.visible})}}>
+              <Icon 
+                name={this.state.visible ? 'eye-slash' : 'eye'}
+                type='font-awesome'
+                color={Colors.primary_color}  
+                style={styles.showIcon}
+              />
+            </TouchableOpacity>
+          </View>
 
-        <TextInput 
-          placeholder={'Password'}
-          value={this.state.password}
-          onChangeText={this.handlePasswordUpdate}
-          secureTextEntry={true}
-          style={styles.passwordBoxStyle}
-        />
-
-        <Button 
-          title='Log In'
-          onPress={this.onSubmit}
-          disabled={!this.state.isFormValid}
-          color={Colors.primary_color}
-        />
-      
+          <Text style={[
+            styles.alert,
+            (this.state.validPassword || this.state.password.length===0) ? 
+            {color: '#fff'} : 
+            {color: 'red'}
+          ]}>
+            Password must be at least 7 characters
+          </Text>
+          
+          <View style={styles.loginButton}>
+            <Button 
+              title='Log In'
+              onPress={this.login}
+              disabled={!this.state.isFormValid}
+              color={Colors.primary_color}
+            />
+          </View>
+        </ScrollView>
+          
       </KeyboardAvoidingView>
     );
     
@@ -117,12 +184,13 @@ const styles = StyleSheet.create({
       justifyContent: 'flex-start',
       backgroundColor: '#fff',
     },
-    
+    scroller: {alignSelf: 'center', width: '100%',},
+    scrollerContent: {alignItems: 'center'}, 
+    loginButton: {width: '30%', alignSelf: 'center'},
     img: {
-      
       width: '100%',
-      height: 150,
-      marginBottom: 70,
+      height: 120,
+      marginBottom: 30,
     },
   
     typewriter: {
@@ -132,18 +200,31 @@ const styles = StyleSheet.create({
         marginBottom: 40,
     },
 
-    usernameBoxStyle: {
-      marginBottom: 30,
+    usernameInput: {
       width: '80%',
       borderColor: '#000',
       borderBottomWidth:1,
+      padding: 8,
     },
-  
-    passwordBoxStyle: {
-      marginBottom: 30,
+
+    alert: {width: '80%', marginBottom: 30,},
+
+    passwordBox: {
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      flexDirection: 'row',
       width: '80%',
+    },
+    showIcon: {
+      marginTop: 20,
+      borderBottomWidth: 1
+    },
+    passwordInput: {
+      width: '93%',
       borderColor: '#000',
       borderBottomWidth: 1,
+      padding: 8
     },
+
 
   });

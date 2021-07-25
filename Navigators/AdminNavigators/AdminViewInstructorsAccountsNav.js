@@ -14,6 +14,8 @@ export default class AdminViewInstructorsAccountsNav extends React.Component{
 
 
   render(){
+    console.log("AQQQQ :"+ this.props.userToken)
+
     return(
       <AdminViewInstructorsAccountsNavigator.Navigator
         initialRouteName={'adminManageInstructorsAccountsNav'}
@@ -22,7 +24,10 @@ export default class AdminViewInstructorsAccountsNav extends React.Component{
         
         <AdminViewInstructorsAccountsNavigator.Screen 
           name={'adminManageInstructorsAccountsNav'}
-          component={AdminManageInstructorsAccountsNav}
+          children={() => <AdminManageInstructorsAccountsNav 
+            navigation={this.props.navigation} 
+            userToken={this.props.userToken}
+          />}
           options={{
             headerShown: false
           }}

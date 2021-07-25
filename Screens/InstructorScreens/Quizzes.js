@@ -62,7 +62,11 @@ console.log(res.status)
       var quiz=[item.title,'\n']   
        return (
          <TouchableOpacity  style={{marginBottom:20}}
-         onPress={()=>this.match(item._id)} 
+         onPress={()=>{
+           this.match(item._id)
+           console.log(item._id)
+          }
+          }
           >
             {isEmpty(item) ? 
             (<Text style={{ fontSize: 20 ,

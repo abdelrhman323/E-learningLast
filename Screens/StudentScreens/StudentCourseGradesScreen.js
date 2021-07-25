@@ -4,7 +4,9 @@ import AppNavigator from '../../Navigators/StudentNavigators/index'
 import {Provider as StoreProvider} from 'react-redux'
 import store from '../../reducer/store'
 
-export default function App(){
+export default function StudentCourseGradesScreen(){
+ // const usertoken =props.userToken
+  //console.log("TOKEN"+usertoken)
   return (
     <StoreProvider store = {store}>
     <PaperProvider >

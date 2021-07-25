@@ -22,7 +22,10 @@ export default class AdminViewAdminsAccountsNav extends React.Component{
         
         <AdminViewAdminsAccountsNavigator.Screen 
           name={'adminManageAdminsAccountsNav'}
-          component={AdminManageAdminsAccountsNav}
+          children={() => <AdminManageAdminsAccountsNav 
+            navigation={this.props.navigation} 
+            userToken={this.props.userToken}
+          />}
           options={{
             headerShown: false
           }}

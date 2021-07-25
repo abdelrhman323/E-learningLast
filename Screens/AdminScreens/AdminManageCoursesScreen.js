@@ -1,16 +1,16 @@
 import React from 'react'
 import { StyleSheet, View, Button, Text, TouchableOpacity } from 'react-native';
 import { TextInput, } from 'react-native-gesture-handler';
-import Spinner from 'react-native-loading-spinner-overlay'
 import { Icon } from 'react-native-elements'
 import DropDownPicker from 'react-native-dropdown-picker';
 import UsersTable from '../../Components/UsersTable';
+import Spinner from 'react-native-loading-spinner-overlay'
 import Toast from 'react-native-simple-toast'
 import { compareByName } from '../../Constants/Functions';
 import { url } from '../../Constants/numbers';
 import Colors from '../../Constants/colors';
 
-export default class AdminManageStudentsAccountsScreen extends React.Component{
+export default class AdminManageCoursesScreen extends React.Component{
   
   state={
     attributes: ['NAME', 'CODE', ],
@@ -31,7 +31,7 @@ export default class AdminManageStudentsAccountsScreen extends React.Component{
           <View flexDirection='row' style = {styles.dropDownContainer}>
             <DropDownPicker
               items={[
-                {label: 'All Students', value: '0',},
+                {label: 'All Courses', value: '0',},
                 {label: 'Year 1', value: '1',},
                 {label: 'Year 2', value: '2', },
                 {label: 'Year 3', value: '3', },
@@ -52,10 +52,10 @@ export default class AdminManageStudentsAccountsScreen extends React.Component{
           
           <View style={styles.row}>
             <Text style={styles.counter}>
-              {`${this.props.studentsShownData.length} Students`}
+              {`${this.props.coursesShownData.length} Courses`}
             </Text>
             {/* <TouchableOpacity
-              onPress={() => this.getStudents(this.state.year)}
+              onPress={() => this.getCourses(this.state.year)}
               style={styles.refreshIcon}
             >
               <Icon 
@@ -67,14 +67,14 @@ export default class AdminManageStudentsAccountsScreen extends React.Component{
         </View>
         
         <UsersTable 
-          userType={'Student'}
+          userType={'Course'}
           attributes={this.state.attributes} 
-          usersShownData={this.props.studentsShownData} 
-          users={this.props.studentsByYear}
+          usersShownData={this.props.coursesShownData} 
+          users={this.props.coursesByYear}
           userToken={this.props.userToken}
           navigation={this.props.navigation} 
-          deleteUser={this.props.deleteStudent}
-          refresh={this.props.getStudents}
+          deleteUser={this.props.deleteCourse}
+          refresh={this.props.getCourses}
           year={this.props.year}
         />
       </View>
